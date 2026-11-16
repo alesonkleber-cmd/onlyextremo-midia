@@ -97,15 +97,21 @@ def quebrar_texto(d, texto, f, larg):
     return linhas
 
 
-def aplicar_fundo(im, caminho, y0, y1):
+_MASC = {}
+
+
+def aplicar_fundo(im, caminho, y0, y1, zoom=1.0):
     """Foto na zona inferior, com degradê escuro para preservar a leitura."""
     foto = Image.open(caminho).convert("RGB")
     alt = y1 - y0
-    esc = max(W / foto.width, alt / foto.height)
+    esc = max(W / foto.width, alt / foto.height) * zoom
     foto = foto.resize((int(foto.width * esc) + 1, int(foto.height * esc) + 1), Image.LANCZOS)
     x = (foto.width - W) // 2
     y = max(0, (foto.height - alt) // 2)
     foto = foto.crop((x, y, x + W, y + alt))
+    if alt in _MASC:
+        im.paste(foto, (0, y0), _MASC[alt])
+        return
     masc = Image.new("L", (W, alt), 255)
     pm = masc.load()
     topo, base = int(alt * 0.42), int(alt * 0.16)
@@ -118,10 +124,12 @@ def aplicar_fundo(im, caminho, y0, y1):
             a = 255
         for xx in range(W):
             pm[xx, yy] = a
+    _MASC[alt] = masc
     im.paste(foto, (0, y0), masc)
 
 
-def gerar(p, caminho_saida, stories=False):
+def render(p, stories=False, linhas_visiveis=None, mostrar_apoio=True, zoom=1.0, base_livre=0):
+    """Desenha o post e devolve a imagem. Os parâmetros extras servem à animação dos Reels."""
     H = 1920 if stories else 1080
     im = Image.new("RGB", (W, H), FUNDO)
     d = ImageDraw.Draw(im)
@@ -156,12 +164,12 @@ def gerar(p, caminho_saida, stories=False):
     y += 64 + 34
 
     # --- orçamento de espaço: com foto, o texto termina cedo para a foto respirar ---
-    rodape_y = H - 58
+    rodape_y = H - 58 - base_livre
     base_zona = rodape_y - 44
     fundo = p.get("fundo") or ""
     caminho = fundo if os.path.isfile(fundo) else os.path.join(AQUI, "fundos", f"{fundo}.jpg")
     tem_foto = bool(fundo) and os.path.isfile(caminho)
-    limite = (1080 if stories else 780) if tem_foto else base_zona - 70
+    limite = (1250 if stories else 780) if tem_foto else base_zona - 70
 
     # --- manchete: 2 a 4 linhas, com trecho realçado ---
     toks = tokens(p["manchete"])
@@ -179,24 +187,27 @@ def gerar(p, caminho_saida, stories=False):
             break
         tam -= 4
     esp = d.textlength(" ", font=fm)
-    for linha in linhas:
+    for i, linha in enumerate(linhas):
         x = M
         for pal, cor in linha:
-            d.text((x, y), pal, font=fm, fill=cor)
+            if linhas_visiveis is None or i < linhas_visiveis:
+                d.text((x, y), pal, font=fm, fill=cor)
             x += d.textlength(pal, font=fm) + esp
         y += int(tam * 1.08)
     y += 18
-    im.paste(degrade_h(260, 10, CIANO, VERDE), (M, y))
+    if linhas_visiveis is None or linhas_visiveis >= len(linhas):
+        im.paste(degrade_h(260, 10, CIANO, VERDE), (M, y))
     y += 10 + 34
 
     # --- apoio ---
     for l in apoio:
-        d.text((M, y), l, font=fa, fill=CINZA)
+        if mostrar_apoio:
+            d.text((M, y), l, font=fa, fill=CINZA)
         y += int(tam_apoio * 1.32)
 
     # --- zona da foto / fundo temático ---
     if tem_foto and base_zona - y >= 160:
-        aplicar_fundo(im, caminho, max(y - 40, base_zona - (1100 if stories else 520)), base_zona)
+        aplicar_fundo(im, caminho, max(y - 40, base_zona - (1100 if stories else 520)), base_zona, zoom)
     else:
         # layout tipográfico: só detalhes gráficos, sem inventar imagens
         d.line([(W - 360, CAB + 46), (W - 250, CAB + 46), (W - 215, CAB + 81), (W, CAB + 81)], fill=CIANO, width=3)
@@ -229,6 +240,12 @@ def gerar(p, caminho_saida, stories=False):
         d.text((x, rodape_y), t, font=fr, fill=cor, anchor="lm")
         x += d.textlength(t, font=fr)
 
+    im.info["linhas"] = len(linhas)
+    return im
+
+
+def gerar(p, caminho_saida, stories=False):
+    im = render(p, stories)
     im.save(caminho_saida + ".png")
     im.save(caminho_saida + ".jpg", quality=93)  # o Instagram exige JPEG
     return caminho_saida

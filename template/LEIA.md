@@ -19,3 +19,9 @@ Saída: PNG e JPEG (o Instagram exige JPEG).
 - `logo.png`: logo da marca. Hoje é a versão extraída de um print; troque pelo PNG original mantendo o nome.
 - `fundos/`: fundos temáticos sem texto. Novos fundos: salvar como `fundos/<nome>.jpg`.
 - `fontes/`: Montserrat (licença aberta OFL).
+
+## Reels
+
+    python template/gerar_reel.py posts.json saida
+
+Gera um MP4 de 9 s (1080x1920, H.264, 30 fps) com o mesmo `posts.json`: a manchete entra linha a linha, depois o apoio, com zoom lento no fundo. Requer ffmpeg. Também salva a capa em JPEG. A faixa inferior fica livre porque a interface do Reels cobre essa área.
