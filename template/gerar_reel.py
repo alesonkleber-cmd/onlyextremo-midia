@@ -5,6 +5,8 @@ Uso:
     python gerar_reel.py posts.json pasta_saida
 
 A manchete entra linha a linha, depois o apoio; o fundo faz um zoom lento.
+Campo extra por post: "trilha" = suspense (padrão), urgente ou neutro. As trilhas são
+originais, sintetizadas por trilhas/gerar_trilhas.py, sem direitos de terceiros.
 Requer Pillow e ffmpeg. Também salva a capa em JPEG.
 """
 import json
@@ -26,9 +28,13 @@ def gerar_reel(p, caminho):
     # instantes em que cada linha (e por fim o apoio) começa a aparecer
     inicio = [0.5 + 0.7 * i for i in range(n + 1)]
     fade = 0.35
+    nome = p.get("trilha") or "suspense"   # suspense | urgente | neutro
+    trilha = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trilhas", nome + ".m4a")
+    if not os.path.isfile(trilha):
+        raise SystemExit(f"trilha não encontrada: {nome}")
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920",
-           "-r", str(FPS), "-i", "-", "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
-           "-shortest", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+           "-r", str(FPS), "-i", "-", "-i", trilha, "-t", str(DUR), "-af", f"afade=t=out:st={DUR - 1.0}:d=1.0",
+           "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
            "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", caminho + ".mp4"]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     total = int(FPS * DUR)

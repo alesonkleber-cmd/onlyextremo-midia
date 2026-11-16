@@ -25,3 +25,5 @@ Saída: PNG e JPEG (o Instagram exige JPEG).
     python template/gerar_reel.py posts.json saida
 
 Gera um MP4 de 9 s (1080x1920, H.264, 30 fps) com o mesmo `posts.json`: a manchete entra linha a linha, depois o apoio, com zoom lento no fundo. Requer ffmpeg. Também salva a capa em JPEG. A faixa inferior fica livre porque a interface do Reels cobre essa área.
+
+Campo extra nos Reels: `trilha` = `suspense` (padrão), `urgente` ou `neutro`. As trilhas em `trilhas/` são originais, sintetizadas por `trilhas/gerar_trilhas.py`, sem direitos de terceiros.
