@@ -10,3 +10,4 @@ Registro para evitar pauta repetida. Uma linha por post: data e hora (Brasília)
 - 2026-11-16 20:50 | PGR pede ao STF manter prisão preventiva de Paulo Henrique Costa, ex-presidente do BRB (caso Master) | 2026-11-16/2026-11-16_pgr-brb-prisao_reel.mp4
 - 2026-11-17 08:45 | Dólar fecha a R$ 5,77 (+2,17%) em 16/11, maior nível desde abril de 2025, com incerteza fiscal; Bolsa cai | 2026-11-17/2026-11-17_dolar-maior-nivel_reel.mp4
 - 2026-11-17 12:45 | Ajuste fiscal: Senado vota 4 destaques nesta terça e governo diz ter acordo com Motta para votar na Câmara à noite | 2026-11-17/2026-11-17_ajuste-fiscal-super-terca_reel.mp4
+- 2026-11-17 14:45 | STF: Dino converte ações contra o fim da escala 6x1 (ADIs 8.041/8.042) em julgamento de mérito no plenário presencial; liminares mantidas, sem data | 2026-11-17/2026-11-17_escala-6x1-plenario-stf_reel.mp4
